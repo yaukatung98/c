@@ -37,8 +37,8 @@
           [else (compose (cdr L) S)]
         ))
 
-
-;(compose '((a b)(d e)) '((e f)(b c)))
+(display "1. Compose\n")
+(compose '((a b)(d e)) '((e f)(b c)))
 
 ;2. Reflexive Closure
 
@@ -73,6 +73,7 @@
     (cond [(empty? L) '()]
           [else(union L (Reflexive_Closure_Helper L S))]))
 
+(display "2. Reflexive Closure\n")
 (Reflexive_Closure '((1 1)(2 2)(4 4)(1 2)) '(1 2 3 4))
 
 ;3. Symmetric Closure
@@ -90,7 +91,8 @@
         [else (append (cons(list (car(car L)) (car(cdr(car L)))) (Symmetric_Closure (cdr L))) (list(list (car(cdr(car L))) (car(car L)))))]
         ))
 
-;(Symmetric_Closure '((a b)(c c)(d e)))
+(display "3. Symmetric Closure\n")
+(Symmetric_Closure '((a b)(c c)(d e)))
 
 ;4. Transitive Closure
 
@@ -102,4 +104,5 @@
   (cond [(empty? L) '()]
         [else(union(union L (compose L L)) (Transitive_Closure (cdr L)))]))
 
-;(Transitive_Closure '((1 2) (2 3) (3 4) (1 5)))
+(display "4. Transitive Closure\n")
+(Transitive_Closure '((1 2) (2 3) (3 4) (1 5)))
