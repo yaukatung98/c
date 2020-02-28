@@ -1,0 +1,43 @@
+;Substitute?
+
+; Input: two atoms and a list that might itself contain lists as elements. Substitute will replace every occurrence of the first atom with the second in the list.
+
+;	Example:
+	
+;		(substitute 'bim 'bam '(a b bim (c d bim e)(f (g h (i bim)))j))
+
+;	Should return
+
+;		(a b bam (c d bam e) (f (g h (i bam))j))
+
+(define atom?
+  (lambda (atom)
+    (not (list? atom))))
+
+(define (substitute from_char to_char input_list)
+
+ (cond [(empty? input_list) '()] 
+       [else
+      (if (equal? from_char (car input_list))
+
+          ;if from_char == to_char, do
+      (cons to_char
+            (if (atom? (car input_list))
+                ;if from_char is an atom, do 
+                (substitute from_char to_char (cdr input_list))
+                ;if from_char is not an atom, do
+                (append(substitute from_char to_char (car input_list)) (substitute from_char to_char (cdr input_list)))))
+      
+          ;if from_char != to_char, do
+      (cons (car input_list)
+            (if (atom? (car input_list))
+                ;if from_char is an atom, do
+                (substitute from_char to_char (cdr input_list))
+                ;if from_char is not an atom, do
+                (append(substitute from_char to_char (car input_list)) (substitute from_char to_char (cdr input_list))))
+            )
+      )]) )
+
+
+(substitute 'bim 'bam '(a b bim (c d bim e)(f (g h (i bim)))j))
+(display "\n*********************************************\n")
