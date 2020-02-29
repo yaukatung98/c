@@ -1,0 +1,102 @@
+function checkStatus() {
+    # Service Name paramater
+   param (
+       $ServiceName
+   )
+
+   $arrService = Get-Service -Name $ServiceName
+   if ($arrService.Status -ne "Running")
+   {
+       Write-Host "Service"$ServiceName" is currently not running, the following is the infos about your selected service."
+       " ----------------------------------------------- " 
+       sleep 1
+       Get-Service -Name $ServiceName
+   }
+   if ($arrService.Status -eq "running")
+   { 
+       Write-Host "$ServiceName service is already started"
+   }
+   
+}
+
+function startService() {
+    # Service Name paramater
+    param (
+        $ServiceName
+    )
+
+    $arrService = Get-Service -Name $ServiceName
+    if ($arrService.Status -ne "Running")
+    {
+        Start-Service $ServiceName
+        Write-Host "Starting " $ServiceName " service..." 
+        " ---------------------- " 
+        sleep 1
+        $result = if (($_ | get-service).Status -eq "Running") {"success"} else {"failure"}
+        Write-Host "Service $($_.Name) has been restarted with $result."
+    }
+    if ($arrService.Status -eq "running")
+    { 
+        Write-Host "$ServiceName service is already started"
+    }
+}
+
+function checkStartupType {
+    param (
+        $ServiceName
+    )
+
+    $arrService = Get-Service | Select-Object -Property Name,Status,StartType | where-object {$_.Name -eq $ServiceName} | Format-Table -auto
+    if ($arrService.StartType -ne "Automatic")
+    {
+        Set-Service -Name $ServiceName -StartupType Automatic
+        Write-Host "Switching service" $ServiceName " start type to automatic" 
+        " ---------------------- " 
+        sleep 1
+        $result = if ($arrSerive.StartType -eq "Automatic") {"success"} else {"failure"}
+        Write-Host "Service $($_.Name) has been changed with $result."
+    }
+    if ($arrService.StartType -eq "Automatic")
+    { 
+        Write-Host "$ServiceName service is already set to start automatically"
+    }
+    
+}
+
+function main()
+{ #Start of function
+[int]$Option = 0
+
+while ( $Option -lt 1 -or $Option -gt 3 )
+{ #Start of While loop
+    Write-Host "#######################################################" -ForegroundColor Green
+    Write-Host "#           Assignment 5 - Service Monitor            #" -ForegroundColor Yellow
+    Write-Host "#                    Tony You                         #"
+    Write-Host "#######################################################" -ForegroundColor Green
+    Write-Host "# 1. Check Service Status;                            #"
+    Write-Host "# 2. Start Service;                                   #"
+    Write-Host "# 3. Quit and exit;                                   #"
+    Write-Host "#######################################################" -ForegroundColor Green
+  
+[Int]$Option = read-host "Please enter an option 1 to 5" 
+} #End of While loop
+
+Switch( $Option )
+{ #Start of switch statement
+  1{$ServiceName = Read-Host -Prompt "Please Enter Your Service Name"
+    checkStatus($ServiceName)
+    Write-host "Script will return back to menu in 8 seconds" -ForegroundColor Green
+    sleep 8
+    main}
+  2{$ServiceName = Read-Host -Prompt "Please Enter Your Service Name"
+    checkStartupType($ServiceName)
+    Write-host "Script will return back to menu in 8 seconds" -ForegroundColor Green
+    sleep 8
+    main}
+  3{Write-host "Script Terminated!!!" -ForegroundColor Green
+      Break}
+} #End of switch statement
+
+} #End of function
+
+main
