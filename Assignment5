@@ -7,7 +7,7 @@ function checkStatus() {
    $arrService = Get-Service -Name $ServiceName
    if ($arrService.Status -ne "Running")
    {
-       Write-Host "Service"$ServiceName" is currently not running, the following is the infos about your selected service."
+       Write-Host "Service"$ServiceName" is currently not running, the following are the infos about your selected service."
        " ----------------------------------------------- " 
        sleep 1
        Get-Service -Name $ServiceName
@@ -28,7 +28,7 @@ function startService() {
     $arrService = Get-Service -Name $ServiceName
     if ($arrService.Status -ne "Running")
     {
-        Start-Service $ServiceName
+        Start-Service -Name "$ServiceName" -Confirm
         Write-Host "Starting " $ServiceName " service..." 
         " ---------------------- " 
         sleep 1
@@ -46,10 +46,13 @@ function checkStartupType {
         $ServiceName
     )
 
-    $arrService = Get-Service | Select-Object -Property Name,Status,StartType | where-object {$_.Name -eq $ServiceName} | Format-Table -auto
+    $arrService = Get-Service | Select-Object -Property Name,Status,StartType | where-object {$_.Name -eq "$ServiceName"} | Format-Table -auto
+    Write-Host "Displaying the startupType info of the selected service"
+
+    Get-Service | Select-Object -Property Name,Status,StartType | where-object {$_.Name -eq "$ServiceName"} | Format-Table -auto
     if ($arrService.StartType -ne "Automatic")
     {
-        Set-Service -Name $ServiceName -StartupType Automatic
+        Set-Service -Name $ServiceName -StartupType Automatic -Confirm
         Write-Host "Switching service" $ServiceName " start type to automatic" 
         " ---------------------- " 
         sleep 1
@@ -63,11 +66,24 @@ function checkStartupType {
     
 }
 
+function addService()
+{
+    $params = @{
+         Name = Read-Host -Prompt "Please Enter Your Service Name"
+         BinaryPathName = Read-Host -Prompt "Please Enter Your Service Binary Path"
+         DependsOn = Read-Host -Prompt "What's Your Service Depends on"
+         DisplayName = Read-Host -Prompt "Please Enter Your Service Display Name"
+         StartupType = Read-Host -Prompt "Please Enter Your Service Startup Type"
+         Description = Read-Host -Prompt "Please Enter Your Service Description"
+}
+    New-Service @params
+}
+
 function main()
 { #Start of function
 [int]$Option = 0
 
-while ( $Option -lt 1 -or $Option -gt 3 )
+while ( $Option -lt 1 -or $Option -gt 4 )
 { #Start of While loop
     Write-Host "#######################################################" -ForegroundColor Green
     Write-Host "#           Assignment 5 - Service Monitor            #" -ForegroundColor Yellow
@@ -75,25 +91,36 @@ while ( $Option -lt 1 -or $Option -gt 3 )
     Write-Host "#######################################################" -ForegroundColor Green
     Write-Host "# 1. Check Service Status;                            #"
     Write-Host "# 2. Start Service;                                   #"
-    Write-Host "# 3. Quit and exit;                                   #"
+    Write-Host "# 3. Add Service;                                     #"
+    Write-Host "# 4. Quit and exit;                                   #"
     Write-Host "#######################################################" -ForegroundColor Green
   
-[Int]$Option = read-host "Please enter an option 1 to 5" 
+[Int]$Option = read-host "Please enter an option 1 to 4" 
 } #End of While loop
 
 Switch( $Option )
 { #Start of switch statement
   1{$ServiceName = Read-Host -Prompt "Please Enter Your Service Name"
     checkStatus($ServiceName)
-    Write-host "Script will return back to menu in 8 seconds" -ForegroundColor Green
-    sleep 8
-    main}
+    if (($prompt = Read-Host -Prompt "Would you like to start the Service? (Y/N)") -eq "Y") 
+    {
+        startService($ServiceName)
+    }else{ 
+        Write-host "Script will return back to menu in 3 seconds" -ForegroundColor Green
+        sleep 3
+        main
+         }
+    }
   2{$ServiceName = Read-Host -Prompt "Please Enter Your Service Name"
     checkStartupType($ServiceName)
-    Write-host "Script will return back to menu in 8 seconds" -ForegroundColor Green
-    sleep 8
+    Write-host "Script will return back to menu in 3 seconds" -ForegroundColor Green
+    sleep 3
     main}
-  3{Write-host "Script Terminated!!!" -ForegroundColor Green
+  3{addService
+    Write-host "Script will return back to menu in 3 seconds" -ForegroundColor Green
+    sleep 3
+    main}
+  4{Write-host "Script Terminated!!!" -ForegroundColor Green
       Break}
 } #End of switch statement
 
