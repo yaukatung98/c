@@ -1,3 +1,7 @@
+# Author: Tony You
+# Date: 3/8/2020
+# Assignment 5 - Service Monitor
+
 function checkStatus() {
     # Service Name paramater
    param (
