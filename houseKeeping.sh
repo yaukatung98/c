@@ -2,23 +2,25 @@
 
 # Color Output for CMD
 
-YELLOW=$'\e[1;33m' # Yellow Color
+YELLOW=$'\e[1;33m' # Yellow Color.
 
-RED=$'\e[0;31m' # Red Color
+RED=$'\e[0;31m' # Red Color.
 
-NC=$'\e[0m' # No Color
+NC=$'\e[0m' # No Color.
 
-# Basic Vars for Script and Logging
 
-TIMESTAMP=$(date +"%Y%m%d")
+# Basic Vars for Script and Logging.
 
-BACKUP_BareOS=/home/ynutty/bareos/
+TIMESTAMP=$(date +"%Y%m%d") # YYYYMMDD.
 
-BACKUP_Local=/home/ynutty/bareos-bak/
+BACKUP_BareOS=/path/path/path # The Location where BareOS Puts the Backup Volumes at.
 
-RETENTION="0"
+BACKUP_Local=/path/path/path # The Location where You Would Like to Store the Old Backup Volumes.
 
-BACKUP_LOG=/home/ynutty/${TIMESTAMP}_backup.log
+RETENTION="7" # Retention Period.
+
+BACKUP_LOG=/path/path/${TIMESTAMP}_backup.log # The Location of Loggings.
+
 
 # Logging Header
 
@@ -34,7 +36,7 @@ echo "Backup script has run. " >> $BACKUP_LOG
 
 echo " ----- ----- ----- " >> $BACKUP_LOG
 
-# cleaner usage function
+# houseKeeping usage function -h
 
 usage()
 
@@ -42,53 +44,21 @@ usage()
 
 cat << EOF
 
-cleaner.sh 
-
+houseKeeping.sh 
 This script cleans directories.  It is useful for backup 
-
 and log file directories, when you want to transport/delete older files. 
-
-USAGE:  cleaner.sh [options]
-
+USAGE:  houseKeeping.sh [options]
 OPTIONS:
-
    -h      Show this message
-
-   -q      This script defaults to verbose, use -q to turn off messages 
-
-           (Useful when using the cleaner.sh in automated scripts).
-
    -s      A search string to limit file deletion, defaults to '*' (All files).
-
-   -m      The minimum number of files required in the directory (Files 
-
-           to be maintained), defaults to 5.
-
-   -d      The directory to clean, defaults to the current directory.
-
    
-
 EXAMPLES: 
-
    In the current directory, transport/delete everything but the 5 most recently touched 
-
    files: 
-
-     cleaner.sh
-
+     houseKeeping.sh
          Same as:
-
-     cleaner.sh -s * -m 5 -d .
-
-   In the /home/myUser directory, transport/delete all files including text "test", except 
-
-   the most recent:
-
-     cleaner.sh -s test -m 1 -d /home/myUser
-
-         Don't ask for any confirmation:
-
-     cleaner.sh -s test -m 1 -d /home/myUser -q              
+     houseKeeping.sh -s *
+   In the directory of bareos backup/house keeping folder, transport/delete all the files that match the vars including text "*"
 
 EOF
 
@@ -96,59 +66,61 @@ EOF
 
 # Set default values for VARS
 
-SEARCH_STRING='keyword'
+SEARCH_STRING='keyword' # Default Search String.
 
-MIN_FILES='0'
+MIN_FILES='0' # For while loop statement.
 
-QUIET=0
+QUIET=0 # Useless VAR.
 
-REMOVED=0
+REMOVED=0 # For Counting File Transported Quantity.
 
-DELETED=0
+DELETED=0 # For Counting FIle Deleted Quantity.
 
-# cleaner transport files function
+# houseKeeping transport files function.
 
 transport()
 
 {
 
-FILES_TRANSPORT=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"`
+FILES_TRANSPORT=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"` # For Couting the Total Number of Existed Files.
 
 while [ $FILES_TRANSPORT -gt $MIN_FILES ]
 
 do
 
-  ls -tr *"$SEARCH_STRING" 2>/dev/null | head -1 | xargs -i mv {} $BACKUP_Local
+  ls -tr *"$SEARCH_STRING" 2>/dev/null | head -1 | xargs -i mv {} $BACKUP_Local # Move New Volumes to the House Keeping Folder.
 
-  FILES_TRANSPORT=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"` 
+  FILES_TRANSPORT=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"` # While Loop, see line 94.
 
-  let "REMOVED+=1"
+  let "REMOVED+=1" # Counting Feature.
 
 done
 
 }
 
-# cleaner delete files function
+# houseKeeping delete files function
 
 delete()
 
 {
 
-FILES_DELETE=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"`
+FILES_DELETE=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"` # For Couting the Total Number of Existed Files.
 
 while [ $FILES_DELETE -gt $MIN_FILES ]
 
 do
 
-  ls -tr *"$SEARCH_STRING" 2>/dev/null | head -1 | xargs -i rm {}
+  ls -tr *"$SEARCH_STRING" 2>/dev/null | head -1 | xargs -i rm {} # Delete Old Volumes in the House Keeping Folder.
 
-  FILES_DELETE=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"`
+  FILES_DELETE=`ls -1p *"$SEARCH_STRING" 2>/dev/null | grep -vc "/$"` # While Loop, see line 94.
 
-  let "DELETED+=1"
+  let "DELETED+=1" # Counting Feature.
 
 done
 
 }
+
+# Main Delete Function.
 
 delete_volume()
 
@@ -162,7 +134,7 @@ delete_volume()
 
         echo "${RED}Delete the following files (y/n)?${NC}" >> $BACKUP_LOG
 
-        ls -alF *"$SEARCH_STRING" >> $BACKUP_LOG 2>&1
+        ls -alF *"$SEARCH_STRING" >> $BACKUP_LOG 2>&1 # For Sending the "ll" Outputs to the Logging File.
 
     fi
 
@@ -202,7 +174,7 @@ transport_volume()
 
         echo "${RED}Transport the following files (y/n)?${NC}" >> $BACKUP_LOG
 
-        ls -alF *"$SEARCH_STRING" >> $BACKUP_LOG 2>&1
+        ls -alF *"$SEARCH_STRING" >> $BACKUP_LOG 2>&1 # For Sending the "ll" Outputs to the Logging File.
 
     fi
 
@@ -232,9 +204,9 @@ transport_volume()
 
 }
 
-# cleaner set args and handle help/unknown arguments with usage() function
+# houseKeeping set args and handle help/unknown arguments with usage() function
 
-while getopts  ":s:m:d:qh" flag
+while getopts  ":s:h" flag
 
 do
 
@@ -250,27 +222,9 @@ do
 
       ;;
 
-    q)
-
-      QUIET=1
-
-      ;;  
-
     s)
 
       SEARCH_STRING=$OPTARG
-
-      ;;
-
-    m)
-
-      MIN_FILES=$OPTARG
-
-      ;;
-
-    d)
-
-      BACKUP_BareOS=$OPTARG
 
       ;;
 
@@ -284,7 +238,7 @@ do
 
 done
 
-# cleaner change to requested directory and perform delete with or without verbosity
+# houseKeeping change to requested directory and perform delete with or without verbosity
 
 cd $BACKUP_Local
 
@@ -294,9 +248,9 @@ if [ $SEARCH_STRING = 'keyword' ]
 
 then
 
-    echo -e "${YELLOW}Usage:  cleaner.sh -s [Keyword]${NC}"
+    echo -e "${YELLOW}Usage:  houseKeeping.sh -s [Keyword]${NC}"
 
-    echo -e "${YELLOW}Usage:  cleaner.sh -s [Keyword]${NC}" >> $BACKUP_LOG
+    echo -e "${YELLOW}Usage:  houseKeeping.sh -s [Keyword]${NC}" >> $BACKUP_LOG
 
     echo " " >> $BACKUP_LOG
 
@@ -310,11 +264,11 @@ if [ ! -e *"$SEARCH_STRING" ]
 
 then
 
-    echo -e "${YELLOW}BareOS Local Backup Directory is empty! Please Wait until New Backup Volume Comes.${NC}"
+    echo -e "${YELLOW}BareOS Backup Directory for House Keeping is empty! Please Wait until House Keeping Volume Comes.${NC}"
 
-    echo -e "${YELLOW}BareOS Local Backup Directory is empty! Please Wait until New Backup Volume Comes.${NC}" >> $BACKUP_LOG
+    echo -e "${YELLOW}BareOS Backup Directory for House Keeping is empty! Please Wait until House Keeping Volume Comes.${NC}" >> $BACKUP_LOG
 
-    # cleaner change to requested directory and perform transport with or without verbosity
+    # houseKeeping change to requested directory and perform transport with or without verbosity
 
     cd $BACKUP_BareOS
 
@@ -324,9 +278,9 @@ then
 
     then
 
-        echo -e "${YELLOW}BareOS Backup Directory is empty! Please Wait until New Backup Volume Comes.${NC}"
+        echo -e "${YELLOW}BareOS Backup Directory for House Keeping is empty! Please Wait until the House Keeping Volume Comes.${NC}"
 
-        echo -e "${YELLOW}BareOS Backup Directory is empty! Please Wait until New Backup Volume Comes.${NC}" >> $BACKUP_LOG
+        echo -e "${YELLOW}BareOS Backup Directory for House Keeping is empty! Please Wait until the House Keeping Volume Comes.${NC}" >> $BACKUP_LOG
 
         echo " ----- ----- Code being Executed End of Line ----- ----- " >> $BACKUP_LOG
 
@@ -352,7 +306,7 @@ else
 
     delete_volume
 
-    # cleaner change to requested directory and perform transport with or without verbosity
+    # houseKeeping change to requested directory and perform transport with or without verbosity
 
     cd $BACKUP_BareOS
 
@@ -380,7 +334,7 @@ else
 
 fi
 
-# cleaner change back to the original directory
+# houseKeeping change back to the original directory
 
 echo " ----- ----- Code being Executed End of Line ----- ----- "
 
